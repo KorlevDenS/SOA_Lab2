@@ -15,6 +15,7 @@ import org.springframework.web.context.WebApplicationContext;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProductService {
@@ -32,17 +33,54 @@ public class ProductService {
         this.personConverter = personConverter;
     }
 
-    public Product saveProduct(Product product) throws ViolationOfUniqueFieldException {
-        if (productRepository.countAllByPartNumber(product.getPartNumber()) != 0) {
-            throw new ViolationOfUniqueFieldException(
-                    "Продукт с номером детали " +  product.getPartNumber() + " уже существует.");
+    public void delete(Integer id) throws InvalidParamsException, ProductNotFoundException {
+        findById(id);
+        productRepository.deleteById(id);
+    }
+
+    public Product findById(Integer id) throws InvalidParamsException, ProductNotFoundException {
+        if (id <= 0) {
+            throw new InvalidParamsException("ID должен быть положительным числом.");
         }
+        Optional<Product> foundProduct = productRepository.findById(id);
+        if (foundProduct.isPresent()) {
+            return foundProduct.get();
+        } else {
+            throw new ProductNotFoundException("Продукт с ID = " + id + " не найден.");
+        }
+    }
+
+    public Product update(Integer id, Product updatedProduct) throws InvalidParamsException,
+            ViolationOfUniqueFieldException, ProductNotFoundException {
+        Product productToUpdate = findById(id);
+        if (!productToUpdate.getPartNumber().equals(updatedProduct.getPartNumber())) {
+            checkQuantityWithPartNumber(updatedProduct.getPartNumber());
+        }
+        productToUpdate.setName(updatedProduct.getName());
+        productToUpdate.setCoordinates(updatedProduct.getCoordinates());
+        productToUpdate.setPrice(updatedProduct.getPrice());
+        productToUpdate.setPartNumber(updatedProduct.getPartNumber());
+        productToUpdate.setManufactureCost(updatedProduct.getManufactureCost());
+        productToUpdate.setUnitOfMeasure(updatedProduct.getUnitOfMeasure());
+        productToUpdate.setOwner(updatedProduct.getOwner());
+        return productRepository.save(productToUpdate);
+    }
+
+    private void checkQuantityWithPartNumber(String partNumber) throws ViolationOfUniqueFieldException {
+        if (productRepository.countAllByPartNumber(partNumber) != 0) {
+            throw new ViolationOfUniqueFieldException(
+                    "Продукт с номером детали " +  partNumber + " уже существует.");
+        }
+    }
+
+    public Product save(Product product) throws ViolationOfUniqueFieldException {
+        checkQuantityWithPartNumber(product.getPartNumber());
         return productRepository.save(product);
     }
 
-    public List<Product> filterProducts(Integer id, String name, String coordinates, LocalDate creationDate,
-                                        Double price, String partNumber, Integer manufactureCost,
-                                        UnitOfMeasure unitOfMeasure, String owner)
+    public List<Product> findAndFilterAll(Integer id, String name, String coordinates, LocalDate creationDate,
+                                          Double price, String partNumber, Integer manufactureCost,
+                                          UnitOfMeasure unitOfMeasure, String owner)
             throws ProductNotFoundException, InvalidParamsException {
         Specification<Product> spec = Specification.where(ProductSpecification.hasId(id))
                 .and(ProductSpecification.hasName(name))
@@ -61,7 +99,7 @@ public class ProductService {
     }
 
     @SuppressWarnings(value = "unchecked")
-    public List<Product> sortProduct(List<Product> products, String sortField) throws InvalidParamsException {
+    public List<Product> sortByField(List<Product> products, String sortField) throws InvalidParamsException {
         if (sortField == null) {
             return products;
         }
@@ -76,7 +114,7 @@ public class ProductService {
 
     }
 
-    public List<Product> findPageOfProducts(List<Product> products, Integer pageNumber, Integer pageSize)
+    public List<Product> findPage(List<Product> products, Integer pageNumber, Integer pageSize)
             throws InvalidParamsException, ProductNotFoundException {
         if (pageNumber == null || pageSize == null) {
             return products;

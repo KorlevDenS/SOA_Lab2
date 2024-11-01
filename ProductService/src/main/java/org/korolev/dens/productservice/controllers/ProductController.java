@@ -1,6 +1,5 @@
 package org.korolev.dens.productservice.controllers;
 
-import jakarta.validation.constraints.Positive;
 import org.korolev.dens.productservice.entities.Product;
 import org.korolev.dens.productservice.entities.UnitOfMeasure;
 import org.korolev.dens.productservice.exceptions.InvalidParamsException;
@@ -35,22 +34,35 @@ public class ProductController {
             @RequestParam(required = false) String sort, @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size
     ) throws ProductNotFoundException, InvalidParamsException {
-        List<Product> filteredProducts = productService.filterProducts(id, name, coordinates, creationDate, price,
+        List<Product> filteredProducts = productService.findAndFilterAll(id, name, coordinates, creationDate, price,
                 partNumber, manufactureCost, unitOfMeasure, owner);
-        List<Product> sortedProducts = productService.sortProduct(filteredProducts, sort);
-        return ResponseEntity.ok(productService.findPageOfProducts(sortedProducts, page, size));
+        List<Product> sortedProducts = productService.sortByField(filteredProducts, sort);
+        return ResponseEntity.ok(productService.findPage(sortedProducts, page, size));
     }
 
     @PostMapping
     public ResponseEntity<Product> addProduct(@RequestBody @Validated Product product)
             throws ViolationOfUniqueFieldException {
-        return ResponseEntity.status(HttpStatus.CREATED).body(productService.saveProduct(product));
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.save(product));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(
-            @PathVariable @Positive(message = "ID должен быть положительным числом.") Integer id) {
-        return null;
+    public ResponseEntity<Product> getProductById(@PathVariable Integer id) throws InvalidParamsException,
+            ProductNotFoundException {
+        return ResponseEntity.ok(productService.findById(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> updateProduct(@PathVariable Integer id, @RequestBody @Validated Product product)
+            throws ViolationOfUniqueFieldException, InvalidParamsException, ProductNotFoundException {
+        return ResponseEntity.ok(productService.update(id, product));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteProduct(@PathVariable Integer id) throws InvalidParamsException,
+            ProductNotFoundException {
+        productService.delete(id);
+        return ResponseEntity.ok("Продукт с id = " + id + " успешно удалён.");
     }
 
 }
