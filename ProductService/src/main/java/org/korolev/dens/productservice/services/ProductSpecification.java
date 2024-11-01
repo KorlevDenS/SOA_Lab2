@@ -39,6 +39,10 @@ public class ProductSpecification {
                 partNumber == null ? null : criteriaBuilder.equal(root.get("partNumber"), partNumber);
     }
 
+    public static Specification<Product> partNumberIncludesSubstring(String substring) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.like(root.get("partNumber"), "%" + substring + "%");
+    }
+
     public static Specification<Product> hasManufactureCost(Integer manufactureCost) {
         return (root, query, criteriaBuilder) ->
                 manufactureCost == null ? null : criteriaBuilder.equal(root.get("manufactureCost"), manufactureCost);

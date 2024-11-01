@@ -33,6 +33,21 @@ public class ProductService {
         this.personConverter = personConverter;
     }
 
+    public Integer countByGreaterThanUnitOfMeasure(String unit) throws InvalidParamsException {
+        UnitOfMeasure unitOfMeasure;
+        try {
+            unitOfMeasure = UnitOfMeasure.valueOf(unit);
+        } catch (IllegalArgumentException ex) {
+            throw new InvalidParamsException(
+                    "Неверно указана единица измерения: допустимые значения METERS, CENTIMETERS, MILLILITERS, GRAMS.");
+        }
+        return productRepository.countAllByUnitOfMeasureGreaterThan(unitOfMeasure);
+    }
+
+    public Integer countByOwner(String ownerId) {
+        return productRepository.countAllByOwner_PassportID(ownerId);
+    }
+
     public void delete(Integer id) throws InvalidParamsException, ProductNotFoundException {
         findById(id);
         productRepository.deleteById(id);
@@ -78,7 +93,20 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    public List<Product> findAndFilterAll(Integer id, String name, String coordinates, LocalDate creationDate,
+    public List<Product> findAllByPartNumberHasSubstring(String substring) throws InvalidParamsException,
+            ProductNotFoundException {
+        if (substring == null || substring.isEmpty()) {
+            throw new InvalidParamsException("Неверно указана подстрока номера детали: строка не может быть пустой.");
+        }
+        Specification<Product> spec = Specification.where(ProductSpecification.partNumberIncludesSubstring(substring));
+        List<Product> products = productRepository.findAll(spec);
+        if (products.isEmpty()) {
+            throw new ProductNotFoundException("Продукты с указанной подстрокой не найдены.");
+        }
+        return products;
+    }
+
+    public List<Product> findAllAndFilter(Integer id, String name, String coordinates, LocalDate creationDate,
                                           Double price, String partNumber, Integer manufactureCost,
                                           UnitOfMeasure unitOfMeasure, String owner)
             throws ProductNotFoundException, InvalidParamsException {

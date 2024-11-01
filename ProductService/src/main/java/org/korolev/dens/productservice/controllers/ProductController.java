@@ -34,7 +34,7 @@ public class ProductController {
             @RequestParam(required = false) String sort, @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size
     ) throws ProductNotFoundException, InvalidParamsException {
-        List<Product> filteredProducts = productService.findAndFilterAll(id, name, coordinates, creationDate, price,
+        List<Product> filteredProducts = productService.findAllAndFilter(id, name, coordinates, creationDate, price,
                 partNumber, manufactureCost, unitOfMeasure, owner);
         List<Product> sortedProducts = productService.sortByField(filteredProducts, sort);
         return ResponseEntity.ok(productService.findPage(sortedProducts, page, size));
@@ -63,6 +63,23 @@ public class ProductController {
             ProductNotFoundException {
         productService.delete(id);
         return ResponseEntity.ok("Продукт с id = " + id + " успешно удалён.");
+    }
+
+    @GetMapping("/owner/{ownerId}/count")
+    public ResponseEntity<Integer> getCountByOwner(@PathVariable String ownerId) {
+        return ResponseEntity.ok(productService.countByOwner(ownerId));
+    }
+
+    @GetMapping("/unitOfMeasure/{unit}/count")
+    public ResponseEntity<Integer> getCountByGreaterThanUnitOfMeasure(@PathVariable String unit)
+            throws InvalidParamsException {
+        return ResponseEntity.ok(productService.countByGreaterThanUnitOfMeasure(unit));
+    }
+
+    @GetMapping("/partNumber/search")
+    public ResponseEntity<List<Product>> getAllByPartNumberHasSubstring(@RequestParam String substring)
+            throws InvalidParamsException, ProductNotFoundException {
+        return ResponseEntity.ok(productService.findAllByPartNumberHasSubstring(substring));
     }
 
 }
