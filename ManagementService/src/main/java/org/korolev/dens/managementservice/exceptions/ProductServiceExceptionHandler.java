@@ -10,7 +10,7 @@ public class ProductServiceExceptionHandler implements ExceptionMapper<ProductSe
     public Response toResponse(ProductServiceException e) {
         return Response
                 .status(e.getStatus().getStatusCode())
-                .entity(e.getMessage())
+                .entity(new RequestMessage(e.getStatus().getStatusCode(), e.getMessage()))
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
