@@ -19,10 +19,10 @@ public class Product {
     private String name;
 
     private Coordinates coordinates;
-
     private LocalDate creationDate;
 
     private Double price;
+
 
     private String partNumber;
 

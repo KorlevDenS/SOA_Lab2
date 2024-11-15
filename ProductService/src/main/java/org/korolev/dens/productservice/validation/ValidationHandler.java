@@ -6,6 +6,7 @@ import org.korolev.dens.productservice.exceptions.RequestMessage;
 import org.korolev.dens.productservice.exceptions.ViolationOfUniqueFieldException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -44,8 +45,13 @@ public class ValidationHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleException(Exception ex) {
+        if (ex instanceof HttpMessageNotReadableException && ex.getMessage().contains("UnitOfMeasure")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new RequestMessage(HttpStatus.BAD_REQUEST.value(),
+                    "Поле unitOfMeasure должно иметь одним из значений: METERS, CENTIMETERS, MILLILITERS, GRAMS"));
+        }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Внутренняя ошибка сервера. Попробуйте позже.");
+                .body(new RequestMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                        "Внутренняя ошибка сервера. Попробуйте позже."));
     }
 
 }
