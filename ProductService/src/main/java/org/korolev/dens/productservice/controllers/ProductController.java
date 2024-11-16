@@ -4,6 +4,7 @@ import org.korolev.dens.productservice.entities.Product;
 import org.korolev.dens.productservice.entities.UnitOfMeasure;
 import org.korolev.dens.productservice.exceptions.InvalidParamsException;
 import org.korolev.dens.productservice.exceptions.ProductNotFoundException;
+import org.korolev.dens.productservice.exceptions.RequestMessage;
 import org.korolev.dens.productservice.exceptions.ViolationOfUniqueFieldException;
 import org.korolev.dens.productservice.services.ProductService;
 import org.springframework.http.HttpStatus;
@@ -59,10 +60,11 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteProduct(@PathVariable Integer id) throws InvalidParamsException,
+    public ResponseEntity<RequestMessage> deleteProduct(@PathVariable Integer id) throws InvalidParamsException,
             ProductNotFoundException {
         productService.delete(id);
-        return ResponseEntity.ok("Продукт с id = " + id + " успешно удалён.");
+        return ResponseEntity.status(HttpStatus.OK.value())
+                .body(new RequestMessage(200, "Продукт с id = " + id + " успешно удалён."));
     }
 
     @GetMapping("/owner/{ownerId}/count")
