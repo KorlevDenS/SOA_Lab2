@@ -7,6 +7,7 @@ import org.korolev.dens.productservice.exceptions.ProductNotFoundException;
 import org.korolev.dens.productservice.exceptions.RequestMessage;
 import org.korolev.dens.productservice.exceptions.ViolationOfUniqueFieldException;
 import org.korolev.dens.productservice.services.ProductService;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -35,10 +36,10 @@ public class ProductController {
             @RequestParam(required = false) String sort, @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size
     ) throws ProductNotFoundException, InvalidParamsException {
-        List<Product> filteredProducts = productService.findAllAndFilter(id, name, coordinates, creationDate, price,
-                partNumber, manufactureCost, unitOfMeasure, owner);
-        List<Product> sortedProducts = productService.sortByField(filteredProducts, sort);
-        return ResponseEntity.ok(productService.findPage(sortedProducts, page, size));
+        Specification<Product> spec = productService.buildFilterSpecification(id, name, coordinates, creationDate,
+                price, partNumber, manufactureCost, unitOfMeasure, owner);
+        Specification<Product> sortedSpec = productService.addSortCriteria(spec, sort);
+        return ResponseEntity.ok(productService.findSpecifiedPage(sortedSpec, page, size));
     }
 
     @PostMapping

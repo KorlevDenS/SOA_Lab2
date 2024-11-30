@@ -16,8 +16,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class ProductServiceApplication {
 
     public static void main(String[] args) {
-//        System.setProperty("javax.net.ssl.trustStore", "./jetty.truststore");
-//        System.setProperty("javax.net.ssl.trustStorePassword", "secret");
         System.setProperty("jsse.enableSNIExtension", "false");
         SpringApplication.run(ProductServiceApplication.class, args);
     }

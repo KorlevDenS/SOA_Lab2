@@ -8,12 +8,13 @@ import org.korolev.dens.productservice.exceptions.ViolationOfUniqueFieldExceptio
 import org.korolev.dens.productservice.repositories.ProductRepository;
 import org.korolev.dens.productservice.validation.CoordinatesConverter;
 import org.korolev.dens.productservice.validation.PersonConverter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,14 +22,12 @@ import java.util.Optional;
 public class ProductService {
 
     private final ProductRepository productRepository;
-    private final WebApplicationContext webApplicationContext;
     private final CoordinatesConverter coordinatesConverter;
     private final PersonConverter personConverter;
 
-    public ProductService(ProductRepository productRepository, WebApplicationContext webApplicationContext,
-                          CoordinatesConverter coordinatesConverter, PersonConverter personConverter) {
+    public ProductService(ProductRepository productRepository, CoordinatesConverter coordinatesConverter,
+                          PersonConverter personConverter) {
         this.productRepository = productRepository;
-        this.webApplicationContext = webApplicationContext;
         this.coordinatesConverter = coordinatesConverter;
         this.personConverter = personConverter;
     }
@@ -106,11 +105,11 @@ public class ProductService {
         return products;
     }
 
-    public List<Product> findAllAndFilter(Integer id, String name, String coordinates, LocalDate creationDate,
-                                          Double price, String partNumber, Integer manufactureCost,
-                                          UnitOfMeasure unitOfMeasure, String owner)
-            throws ProductNotFoundException, InvalidParamsException {
-        Specification<Product> spec = Specification.where(ProductSpecification.hasId(id))
+    public Specification<Product> buildFilterSpecification(Integer id, String name, String coordinates,
+                                                           LocalDate creationDate, Double price, String partNumber,
+                                                           Integer manufactureCost, UnitOfMeasure unitOfMeasure,
+                                                           String owner) throws InvalidParamsException {
+        return Specification.where(ProductSpecification.hasId(id))
                 .and(ProductSpecification.hasName(name))
                 .and(ProductSpecification.hasCoordinates(coordinatesConverter.convertWithCheck(coordinates)))
                 .and(ProductSpecification.hasCreationDate(creationDate))
@@ -119,43 +118,42 @@ public class ProductService {
                 .and(ProductSpecification.hasManufactureCost(manufactureCost))
                 .and(ProductSpecification.hasUnitOfMeasure(unitOfMeasure))
                 .and(ProductSpecification.hasOwner(personConverter.convertWithCheck(owner)));
-        List<Product> products = productRepository.findAll(spec);
-        if (products.isEmpty()) {
-            throw new ProductNotFoundException("Продукты не найдены по указанным параметрам фильтрации.");
-        }
-        return products;
     }
 
-    @SuppressWarnings(value = "unchecked")
-    public List<Product> sortByField(List<Product> products, String sortField) throws InvalidParamsException {
+    public Specification<Product> addSortCriteria(Specification<Product> spec, String sortField)
+            throws InvalidParamsException {
         if (sortField == null) {
-            return products;
+            return spec;
         }
-        String comparatorBeanName = sortField + "ProductComparator";
-        if (webApplicationContext.containsBean(comparatorBeanName)) {
-            Comparator<Product> comparator = webApplicationContext.getBean(comparatorBeanName, Comparator.class);
-            products.sort(comparator);
-            return products;
-        } else {
-            throw new InvalidParamsException("Указан несуществующий параметр сортировки.");
-        }
-
+        return switch (sortField) {
+            case "id" -> spec.and(ProductSpecification.sortById());
+            case "name" -> spec.and(ProductSpecification.sortByName());
+            case "coordinates" -> spec.and(ProductSpecification.sortByCoordinates());
+            case "creationDate" -> spec.and(ProductSpecification.sortByCreationDate());
+            case "price" -> spec.and(ProductSpecification.sortByPrice());
+            case "partNumber" -> spec.and(ProductSpecification.sortByPartNumber());
+            case "manufactureCost" -> spec.and(ProductSpecification.sortByManufactureCost());
+            case "unitOfMeasure" -> spec.and(ProductSpecification.sortByUnitOfMeasure());
+            case "owner" -> spec.and(ProductSpecification.sortByOwner());
+            default -> throw new InvalidParamsException("Указан несуществующий параметр сортировки.");
+        };
     }
 
-    public List<Product> findPage(List<Product> products, Integer pageNumber, Integer pageSize)
+    public List<Product> findSpecifiedPage(Specification<Product> spec, Integer pageNumber, Integer pageSize)
             throws InvalidParamsException, ProductNotFoundException {
         if (pageNumber == null || pageSize == null) {
-            return products;
+            return productRepository.findAll(spec);
         }
         if (pageNumber <= 0 || pageSize <= 0) {
             throw new InvalidParamsException("Номер и размер страницы должен быть положительным.");
         }
-        if (pageNumber * pageSize - pageSize > products.size() - 1) {
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+
+        Page<Product> products = productRepository.findAll(spec, pageable);
+        if (products.isEmpty()) {
             throw new ProductNotFoundException("Указанная страница не найдена");
         }
-        //TODO Sorting by Repository && Pagination
-        List<Product> page = products.subList(pageNumber * pageSize - pageSize, products.size());
-        return page.stream().limit(pageSize).toList();
+        return products.getContent();
     }
 
 }
