@@ -1,5 +1,6 @@
 package org.korolev.dens.productservice.entities;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -9,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.korolev.dens.productservice.validation.ZonedDateTimeDeserializer;
 
 import java.time.ZonedDateTime;
 import java.util.Objects;
@@ -25,6 +27,7 @@ public class Person implements Comparable<Person> {
     @Column(name = "person_name")
     private String name;
 
+    @JsonDeserialize(using = ZonedDateTimeDeserializer.class)
     @NotNull(message = "Поле birthday не может быть null")
     @Column(name = "person_birthday")
     private ZonedDateTime birthday;

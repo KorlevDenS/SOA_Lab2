@@ -43,12 +43,24 @@ public class ValidationHandler {
                 .body(new RequestMessage(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleException(Exception ex) {
-        if (ex instanceof HttpMessageNotReadableException && ex.getMessage().contains("UnitOfMeasure")) {
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<?> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+        if (ex.getRootCause() instanceof InvalidParamsException) {
+            return handleInvalidParamsException((InvalidParamsException) ex.getRootCause());
+        }
+        if (ex.getMessage().contains("UnitOfMeasure")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new RequestMessage(HttpStatus.BAD_REQUEST.value(),
                     "Поле unitOfMeasure должно иметь одним из значений: METERS, CENTIMETERS, MILLILITERS, GRAMS"));
         }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new RequestMessage(
+                        HttpStatus.BAD_REQUEST.value(),
+                        "Ошибка в параметрах или теле запроса"
+                ));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleException(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new RequestMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                         "Внутренняя ошибка сервера. Попробуйте позже."));

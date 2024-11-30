@@ -1,6 +1,8 @@
 package org.korolev.dens.productservice.exceptions;
 
-public class InvalidParamsException extends Exception {
+import java.io.IOException;
+
+public class InvalidParamsException extends IOException {
     public InvalidParamsException(String message) {
         super(message);
     }
