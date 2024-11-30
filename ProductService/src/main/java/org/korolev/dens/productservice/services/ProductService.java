@@ -153,6 +153,7 @@ public class ProductService {
         if (pageNumber * pageSize - pageSize > products.size() - 1) {
             throw new ProductNotFoundException("Указанная страница не найдена");
         }
+        //TODO Sorting by Repository && Pagination
         List<Product> page = products.subList(pageNumber * pageSize - pageSize, products.size());
         return page.stream().limit(pageSize).toList();
     }

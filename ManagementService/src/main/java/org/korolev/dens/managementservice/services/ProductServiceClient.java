@@ -16,7 +16,7 @@ public class ProductServiceClient {
 
     public ProductServiceClient() {
         this.client = ClientBuilder.newClient();
-        this.baseUrl = "http://localhost:8177/products";
+        this.baseUrl = "https://localhost:8177/products";
     }
 
     public Response getData(String apiUrl) throws ProductServiceException {
@@ -24,6 +24,7 @@ public class ProductServiceClient {
             WebTarget target = this.client.target(this.baseUrl + apiUrl);
             return target.request().get();
         } catch (ProcessingException e) {
+            System.out.println(e.getMessage());
             throw new ProductServiceException(
                     "Сервис временно недоступен: попробуйте позже.",
                     Response.Status.fromStatusCode(504)
