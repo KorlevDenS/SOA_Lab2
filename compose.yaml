@@ -1,0 +1,23 @@
+services:
+  management:
+    image: 'jboss/wildfly'
+    restart: always
+    ports:
+      - "9990:9990"
+      - "8188:8080"
+      - "8199:8443"
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      - 'POSTGRES_DB=db1'
+      - 'POSTGRES_PASSWORD=11gramgim'
+      - 'POSTGRES_USER=postgres'
+    ports:
+      - "5432:5432"
+  products:
+    build: ./ProductService
+    restart: always
+    volumes:
+      - ./ProductService:/app
+    ports:
+      - "8177:8177"

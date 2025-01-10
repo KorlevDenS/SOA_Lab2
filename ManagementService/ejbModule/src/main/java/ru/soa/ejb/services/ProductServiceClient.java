@@ -16,7 +16,7 @@ public class ProductServiceClient {
 
     public ProductServiceClient() {
         this.client = ClientBuilder.newClient();
-        this.baseUrl = "https://soa-service1.prosto-team.space/products";
+        this.baseUrl = "https://products:8177/products";
     }
 
     public Response getData(String apiUrl) throws ProductServiceException {
