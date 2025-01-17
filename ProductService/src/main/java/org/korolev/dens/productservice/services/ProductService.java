@@ -52,6 +52,14 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
+    public Product findById(String id) throws InvalidParamsException, ProductNotFoundException {
+        try {
+            return findById(Integer.valueOf(id));
+        } catch (NumberFormatException ex) {
+            throw new InvalidParamsException("ID должен быть целым числом.");
+        }
+    }
+
     public Product findById(Integer id) throws InvalidParamsException, ProductNotFoundException {
         if (id <= 0) {
             throw new InvalidParamsException("ID должен быть положительным числом.");

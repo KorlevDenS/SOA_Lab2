@@ -27,7 +27,7 @@ public class ProductEndpoint {
     @ResponsePayload
     public GetProductByIdResponse getProductById(@RequestPayload GetProductByIdRequest request) throws InvalidParamsException, ProductNotFoundException {
         String flatId = request.getId();
-        Product product = productService.findById(Integer.valueOf(flatId));
+        Product product = productService.findById(flatId);
         GetProductByIdResponse response = new GetProductByIdResponse();
         response.setProduct(productMapper.toDto(product));
         return response;
