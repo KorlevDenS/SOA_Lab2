@@ -9,10 +9,8 @@
 package org.korolev.dens.productservice.jaxb;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlSchemaType;
-import jakarta.xml.bind.annotation.XmlType;
+
+import jakarta.xml.bind.annotation.*;
 
 
 /**
@@ -48,11 +46,16 @@ import jakarta.xml.bind.annotation.XmlType;
 })
 public class PersonGetResponse {
 
+    @XmlElement(namespace = "http://org/korolev/dens/productservice/jaxb")
     protected String name;
+    @XmlElement(namespace = "http://org/korolev/dens/productservice/jaxb")
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar birthday;
+    @XmlElement(namespace = "http://org/korolev/dens/productservice/jaxb")
     protected Float height;
+    @XmlElement(namespace = "http://org/korolev/dens/productservice/jaxb")
     protected String passportID;
+    @XmlElement(namespace = "http://org/korolev/dens/productservice/jaxb")
     protected LocationGetResponse location;
 
     /**

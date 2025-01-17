@@ -10,6 +10,7 @@ package org.korolev.dens.productservice.jaxb;
 
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlType;
 
 
@@ -40,7 +41,9 @@ import jakarta.xml.bind.annotation.XmlType;
 })
 public class CoordinatesGetResponse {
 
+    @XmlElement(namespace = "http://org/korolev/dens/productservice/jaxb")
     protected Integer x;
+    @XmlElement(namespace = "http://org/korolev/dens/productservice/jaxb")
     protected Long y;
 
     /**

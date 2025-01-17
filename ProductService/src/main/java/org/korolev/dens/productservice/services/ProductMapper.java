@@ -1,13 +1,8 @@
 package org.korolev.dens.productservice.services;
 
-import org.korolev.dens.productservice.entities.Coordinates;
-import org.korolev.dens.productservice.entities.Location;
-import org.korolev.dens.productservice.entities.Person;
-import org.korolev.dens.productservice.entities.Product;
-import org.korolev.dens.productservice.jaxb.CoordinatesGetResponse;
-import org.korolev.dens.productservice.jaxb.LocationGetResponse;
-import org.korolev.dens.productservice.jaxb.PersonGetResponse;
-import org.korolev.dens.productservice.jaxb.ProductGetResponse;
+import org.korolev.dens.productservice.entities.*;
+import org.korolev.dens.productservice.exceptions.InvalidParamsException;
+import org.korolev.dens.productservice.jaxb.*;
 import org.springframework.stereotype.Service;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -32,8 +27,50 @@ public class ProductMapper {
         response.setPartNumber(product.getPartNumber());
         response.setManufactureCost(product.getManufactureCost());
         response.setUnitOfMeasure(product.getUnitOfMeasure().toString());
-        response.setOwner(toDto(product.getOwner()));
+        if (product.getOwner() != null) {
+            response.setOwner(toDto(product.getOwner()));
+        }
         return response;
+    }
+
+    public Product toEntity(UpdateProductRequest request) throws InvalidParamsException {
+        Product product = new Product();
+        product.setName(request.getName());
+        product.setCoordinates(toEntity(request.getCoordinates()));
+        product.setCreationDate(LocalDate.now());
+        product.setPrice(request.getPrice());
+        product.setPartNumber(request.getPartNumber());
+        product.setManufactureCost(request.getManufactureCost());
+        try {
+            product.setUnitOfMeasure(UnitOfMeasure.valueOf(request.getUnitOfMeasure()));
+        } catch (IllegalArgumentException e) {
+            throw new InvalidParamsException("Поле unitOfMeasure должно иметь одним из значений:" +
+                    " METERS, CENTIMETERS, MILLILITERS, GRAMS");
+        }
+        if (request.getOwner() != null) {
+            product.setOwner(toEntity(request.getOwner()));
+        }
+        return product;
+    }
+
+    public Product toEntity(AddProductRequest request) throws InvalidParamsException {
+        Product product = new Product();
+        product.setName(request.getName());
+        product.setCoordinates(toEntity(request.getCoordinates()));
+        product.setCreationDate(LocalDate.now());
+        product.setPrice(request.getPrice());
+        product.setPartNumber(request.getPartNumber());
+        product.setManufactureCost(request.getManufactureCost());
+        try {
+            product.setUnitOfMeasure(UnitOfMeasure.valueOf(request.getUnitOfMeasure()));
+        } catch (IllegalArgumentException e) {
+            throw new InvalidParamsException("Поле unitOfMeasure должно иметь одним из значений:" +
+                    " METERS, CENTIMETERS, MILLILITERS, GRAMS");
+        }
+        if (request.getOwner() != null) {
+            product.setOwner(toEntity(request.getOwner()));
+        }
+        return product;
     }
 
     public PersonGetResponse toDto(Person person) {
@@ -42,8 +79,22 @@ public class ProductMapper {
         response.setBirthday(toXmlGregorianCalendar(person.getBirthday()));
         response.setHeight(person.getHeight());
         response.setPassportID(person.getPassportID());
-        response.setLocation(toDto(person.getLocation()));
+        if (person.getLocation() != null) {
+            response.setLocation(toDto(person.getLocation()));
+        }
         return response;
+    }
+
+    public Person toEntity(PersonGetResponse response) {
+        Person person = new Person();
+        person.setName(response.getName());
+        person.setBirthday(toZonedDateTime(response.getBirthday()));
+        person.setHeight(response.getHeight());
+        person.setPassportID(response.getPassportID());
+        if (response.getLocation() != null) {
+            person.setLocation(toEntity(response.getLocation()));
+        }
+        return person;
     }
 
     public CoordinatesGetResponse toDto(Coordinates coordinates) {
@@ -51,6 +102,13 @@ public class ProductMapper {
         response.setX(coordinates.getX());
         response.setY(coordinates.getY());
         return response;
+    }
+
+    public Coordinates toEntity(CoordinatesGetResponse response) {
+        Coordinates coordinates = new Coordinates();
+        coordinates.setX(response.getX());
+        coordinates.setY(response.getY());
+        return coordinates;
     }
 
     public LocationGetResponse toDto(Location location) {
@@ -61,7 +119,13 @@ public class ProductMapper {
         return response;
     }
 
-
+    public Location toEntity(LocationGetResponse response) {
+        Location location = new Location();
+        location.setX(response.getX());
+        location.setY(response.getY());
+        location.setName(response.getName());
+        return location;
+    }
 
     public LocalDate toLocalDate(XMLGregorianCalendar xmlGregorianCalendar) {
         if (xmlGregorianCalendar == null) {
@@ -69,6 +133,14 @@ public class ProductMapper {
         }
         Date date = xmlGregorianCalendar.toGregorianCalendar().getTime();
         return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    }
+
+    public ZonedDateTime toZonedDateTime(XMLGregorianCalendar xmlGregorianCalendar) {
+        if (xmlGregorianCalendar == null) {
+            return null;
+        }
+        Date date = xmlGregorianCalendar.toGregorianCalendar().getTime();
+        return date.toInstant().atZone(ZoneId.systemDefault());
     }
 
     public XMLGregorianCalendar toXmlGregorianCalendar(ZonedDateTime zonedDateTime) {

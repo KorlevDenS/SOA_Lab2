@@ -52,6 +52,11 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
+    public void delete(String id) throws InvalidParamsException, ProductNotFoundException {
+        findById(id);
+        productRepository.deleteById(Integer.valueOf(id));
+    }
+
     public Product findById(String id) throws InvalidParamsException, ProductNotFoundException {
         try {
             return findById(Integer.valueOf(id));
@@ -86,6 +91,15 @@ public class ProductService {
         productToUpdate.setUnitOfMeasure(updatedProduct.getUnitOfMeasure());
         productToUpdate.setOwner(updatedProduct.getOwner());
         return productRepository.save(productToUpdate);
+    }
+
+    public Product update(String id, Product updatedProduct) throws InvalidParamsException,
+            ViolationOfUniqueFieldException, ProductNotFoundException {
+        try {
+            return update(Integer.valueOf(id), updatedProduct);
+        } catch (NumberFormatException ex) {
+            throw new InvalidParamsException("ID должен быть целым числом.");
+        }
     }
 
     private void checkQuantityWithPartNumber(String partNumber) throws ViolationOfUniqueFieldException {

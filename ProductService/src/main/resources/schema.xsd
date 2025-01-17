@@ -23,6 +23,7 @@
         </xs:complexType>
     </xs:element>
 
+
     <!--  Get Product by id  -->
     <xs:element name="getProductByIdRequest">
         <xs:complexType>
@@ -40,119 +41,74 @@
         </xs:complexType>
     </xs:element>
 
-<!--    &lt;!&ndash;  Add Flat  &ndash;&gt;-->
-<!--    <xs:element name="addFlatRequest">-->
-<!--        <xs:complexType>-->
-<!--            <xs:sequence>-->
-<!--                <xs:element name="name" type="xs:string" maxOccurs="1"/>-->
-<!--                <xs:element name="coordinates" type="tns:FlatCoordinatesGetResponsesDto" maxOccurs="1"/>-->
-<!--                <xs:element name="area" type="xs:int" maxOccurs="1"/>-->
-<!--                <xs:element name="numberOfRooms" type="xs:long" maxOccurs="1"/>-->
-<!--                <xs:element name="floor" type="xs:int" maxOccurs="1"/>-->
-<!--                <xs:element name="timeToMetroOnFoot" type="xs:int" maxOccurs="1"/>-->
-<!--                <xs:element name="balcony" type="xs:boolean" maxOccurs="1"/>-->
-<!--                <xs:element name="view" type="xs:string" minOccurs="0"/>-->
-<!--                <xs:element name="house" type="tns:FlatHouseGetResponseDto" minOccurs="0"/>-->
-<!--                <xs:element name="price" type="xs:double" maxOccurs="1"/>-->
-<!--            </xs:sequence>-->
-<!--        </xs:complexType>-->
-<!--    </xs:element>-->
-
-<!--    <xs:element name="addFlatResponse">-->
-<!--        <xs:complexType>-->
-<!--            <xs:sequence>-->
-<!--                <xs:element name="flat" type="tns:FlatGetResponseDto" maxOccurs="1"/>-->
-<!--            </xs:sequence>-->
-<!--        </xs:complexType>-->
-<!--    </xs:element>-->
-
-<!--    &lt;!&ndash;  Update Flat  &ndash;&gt;-->
-<!--    <xs:element name="updateFlatRequest">-->
-<!--        <xs:complexType>-->
-<!--            <xs:sequence>-->
-<!--                <xs:element name="id" type="xs:string" maxOccurs="1"/>-->
-<!--                <xs:element name="flat" type="tns:FlatUpdateOrAddDto" maxOccurs="1"/>-->
-<!--            </xs:sequence>-->
-<!--        </xs:complexType>-->
-<!--    </xs:element>-->
-
-<!--    <xs:element name="updateFlatResponse">-->
-<!--        <xs:complexType>-->
-<!--            <xs:sequence>-->
-<!--                <xs:element name="flat" type="tns:FlatGetResponseDto" maxOccurs="1"/>-->
-<!--            </xs:sequence>-->
-<!--        </xs:complexType>-->
-<!--    </xs:element>-->
-
-    <!--  Delete by id Flat  -->
-    <xs:element name="deleteFlatRequest">
+    <!--  Add Product  -->
+    <xs:element name="addProductRequest">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="id" type="xs:string" minOccurs="1"/>
+                <xs:element name="name" type="xs:string"/>
+                <xs:element name="coordinates" type="tns:CoordinatesGetResponse" minOccurs="0"/>
+                <xs:element name="price" type="xs:double" minOccurs="0"/>
+                <xs:element name="partNumber" type="xs:string"/>
+                <xs:element name="manufactureCost" type="xs:int"/>
+                <xs:element name="unitOfMeasure" type="xs:string"/>
+                <xs:element name="owner" type="tns:PersonGetResponse" minOccurs="0"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="deleteFlatResponse">
+    <xs:element name="addProductResponse">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="code" type="xs:string" maxOccurs="1"/>
-                <xs:element name="message" type="xs:string" maxOccurs="1"/>
-                <xs:element name="time" type="xs:string" maxOccurs="1"/>
+                <xs:element name="product" type="tns:ProductGetResponse"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
 
-    <!--  Delete by view Flat  -->
-    <xs:element name="deleteFlatByViewRequest">
+    <!--  Update Product  -->
+    <xs:element name="updateProductRequest">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="view" type="xs:string" minOccurs="1"/>
+                <xs:element name="id" type="xs:string"/>
+                <xs:element name="name" type="xs:string"/>
+                <xs:element name="coordinates" type="tns:CoordinatesGetResponse" minOccurs="0"/>
+                <xs:element name="price" type="xs:double" minOccurs="0"/>
+                <xs:element name="partNumber" type="xs:string"/>
+                <xs:element name="manufactureCost" type="xs:int"/>
+                <xs:element name="unitOfMeasure" type="xs:string"/>
+                <xs:element name="owner" type="tns:PersonGetResponse" minOccurs="0"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="deleteFlatByViewResponse">
+    <xs:element name="updateProductResponse">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="code" type="xs:string" maxOccurs="1"/>
-                <xs:element name="message" type="xs:string" maxOccurs="1"/>
-                <xs:element name="time" type="xs:string" maxOccurs="1"/>
+                <xs:element name="product" type="tns:ProductGetResponse"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
 
-    <!--  Get average time to metro Flats  -->
-    <xs:element name="getFlatsAverageTimeMetroRequest">
+    <!--  Delete Product by id  -->
+    <xs:element name="deleteProductByIdRequest">
         <xs:complexType>
             <xs:sequence>
+                <xs:element name="id" type="xs:string"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="getFlatsAverageTimeMetroResponse">
+    <xs:element name="deleteProductByIdResponse">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="number" type="xs:double"/>
+                <xs:element name="code" type="xs:int"/>
+                <xs:element name="message" type="xs:string"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
 
-    <!--  Get Unique view Flats  -->
-    <xs:element name="getUniqueFlatViewRequest">
-        <xs:complexType>
-            <xs:sequence>
-            </xs:sequence>
-        </xs:complexType>
-    </xs:element>
 
-    <xs:element name="getUniqueFlatViewResponse">
-        <xs:complexType>
-            <xs:sequence>
-                <xs:element name="viewList" type="xs:string" maxOccurs="unbounded"/>
-            </xs:sequence>
-        </xs:complexType>
-    </xs:element>
+
+
 
     <!-- Model  -->
     <xs:complexType name="CoordinatesGetResponse">
