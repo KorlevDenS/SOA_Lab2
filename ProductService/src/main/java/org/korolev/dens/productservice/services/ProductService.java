@@ -142,6 +142,18 @@ public class ProductService {
                 .and(ProductSpecification.hasOwner(personConverter.convertWithCheck(owner)));
     }
 
+    public Specification<Product> buildFilterSpecification(Integer id, String name, LocalDate creationDate,
+                                                           Double price, String partNumber, Integer manufactureCost,
+                                                           String unitOfMeasure) throws InvalidParamsException {
+        try {
+            return buildFilterSpecification(id, name, null, creationDate, price, partNumber, manufactureCost,
+                    unitOfMeasure != null ? UnitOfMeasure.valueOf(unitOfMeasure) : null, null);
+        } catch (IllegalArgumentException ex) {
+            throw new InvalidParamsException(
+                    "Неверно указана единица измерения: допустимые значения METERS, CENTIMETERS, MILLILITERS, GRAMS.");
+        }
+    }
+
     public Specification<Product> addSortCriteria(Specification<Product> spec, String sortField)
             throws InvalidParamsException {
         if (sortField == null) {

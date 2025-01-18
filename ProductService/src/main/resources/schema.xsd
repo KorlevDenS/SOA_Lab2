@@ -7,10 +7,16 @@
     <xs:element name="getProductsRequest">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="sort" type="xs:string" maxOccurs="unbounded"/>
-                <xs:element name="filter" type="xs:string" maxOccurs="unbounded"/>
-                <xs:element name="page" type="xs:string"/>
-                <xs:element name="size" type="xs:string"/>
+                <xs:element name="id" type="xs:int" minOccurs="0"/>
+                <xs:element name="name" type="xs:string" minOccurs="0"/>
+                <xs:element name="creationDate" type="xs:dateTime" minOccurs="0"/>
+                <xs:element name="price" type="xs:double" minOccurs="0"/>
+                <xs:element name="partNumber" type="xs:string" minOccurs="0"/>
+                <xs:element name="manufactureCost" type="xs:int" minOccurs="0"/>
+                <xs:element name="unitOfMeasure" type="xs:string" minOccurs="0"/>
+                <xs:element name="sort" type="xs:string" minOccurs="0"/>
+                <xs:element name="page" type="xs:int" minOccurs="0"/>
+                <xs:element name="size" type="xs:int" minOccurs="0"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>

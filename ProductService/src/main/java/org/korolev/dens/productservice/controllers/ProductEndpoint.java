@@ -6,6 +6,7 @@ import org.korolev.dens.productservice.exceptions.ProductNotFoundException;
 import org.korolev.dens.productservice.exceptions.ViolationOfUniqueFieldException;
 import org.korolev.dens.productservice.services.ProductMapper;
 import org.korolev.dens.productservice.services.ProductService;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.korolev.dens.productservice.jaxb.*;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
@@ -66,6 +67,22 @@ public class ProductEndpoint {
         Product updatedProduct = productService.update(id, product);
         UpdateProductResponse response = new UpdateProductResponse();
         response.setProduct(productMapper.toDto(updatedProduct));
+        return response;
+    }
+
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "getProductsRequest")
+    @ResponsePayload
+    public GetProductsResponse getProducts(@RequestPayload GetProductsRequest request) throws InvalidParamsException, ProductNotFoundException {
+        Specification<Product> spec = productService.buildFilterSpecification(
+                request.getId(), request.getName(),
+                request.getCreationDate() != null ? productMapper.toLocalDate(request.getCreationDate()) : null,
+                request.getPrice(), request.getPartNumber(), request.getManufactureCost(), request.getUnitOfMeasure()
+        );
+        Specification<Product> sortedSpec = productService.addSortCriteria(spec, request.getSort());
+        GetProductsResponse response = new GetProductsResponse();
+        response.getProductsGetResponse()
+                .addAll(productService.findSpecifiedPage(sortedSpec, request.getPage(), request.getSize())
+                        .stream().map(productMapper::toDto).toList());
         return response;
     }
 }

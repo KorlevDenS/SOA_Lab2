@@ -29,15 +29,14 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<List<Product>> getProducts(
             @RequestParam(required = false) Integer id, @RequestParam(required = false) String name,
-            @RequestParam(required = false) String coordinates,
             @RequestParam(required = false) LocalDate creationDate, @RequestParam(required = false) Double price,
             @RequestParam(required = false) String partNumber, @RequestParam(required = false) Integer manufactureCost,
-            @RequestParam(required = false) UnitOfMeasure unitOfMeasure, @RequestParam(required = false) String owner,
+            @RequestParam(required = false) UnitOfMeasure unitOfMeasure,
             @RequestParam(required = false) String sort, @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size
     ) throws ProductNotFoundException, InvalidParamsException {
-        Specification<Product> spec = productService.buildFilterSpecification(id, name, coordinates, creationDate,
-                price, partNumber, manufactureCost, unitOfMeasure, owner);
+        Specification<Product> spec = productService.buildFilterSpecification(id, name, null, creationDate,
+                price, partNumber, manufactureCost, unitOfMeasure, null);
         Specification<Product> sortedSpec = productService.addSortCriteria(spec, sort);
         return ResponseEntity.ok(productService.findSpecifiedPage(sortedSpec, page, size));
     }
