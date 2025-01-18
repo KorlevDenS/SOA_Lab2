@@ -85,4 +85,32 @@ public class ProductEndpoint {
                         .stream().map(productMapper::toDto).toList());
         return response;
     }
+
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "countByOwnerRequest")
+    @ResponsePayload
+    public CountByOwnerResponse countByOwner(@RequestPayload CountByOwnerRequest request) throws InvalidParamsException {
+        CountByOwnerResponse response = new CountByOwnerResponse();
+        response.setCount(productService.countByOwner(request.getPassportID()));
+        return response;
+    }
+
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "countByGreaterUnitOfMeasureRequest")
+    @ResponsePayload
+    public CountByGreaterUnitOfMeasureResponse countByGreaterUnitOfMeasure(
+            @RequestPayload CountByGreaterUnitOfMeasureRequest request) throws InvalidParamsException {
+        CountByGreaterUnitOfMeasureResponse response = new CountByGreaterUnitOfMeasureResponse();
+        response.setCount(productService.countByGreaterThanUnitOfMeasure(request.getUnit()));
+        return response;
+    }
+
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "getByPartNumberSubstringRequest")
+    @ResponsePayload
+    public GetByPartNumberSubstringResponse getByPartNumberSubstring(
+            @RequestPayload GetByPartNumberSubstringRequest request) throws InvalidParamsException, ProductNotFoundException {
+        GetByPartNumberSubstringResponse response = new GetByPartNumberSubstringResponse();
+        response.getProductsGetResponse().addAll(productService.findAllByPartNumberHasSubstring(request.getSubstring())
+                .stream().map(productMapper::toDto).toList());
+        return response;
+    }
+
 }
