@@ -1,0 +1,582 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="c804368d-de77-4788-834c-495f4c72c9db" >
+		<http:listener-connection host="localhost" port="8144" readTimeout="3000">
+		</http:listener-connection>
+	</http:listener-config>
+	<wsc:config name="Web_Service_Consumer_Config" doc:name="Web Service Consumer Config" doc:id="48a8b03a-823b-45dd-b6c8-bf548006095f" >
+		<wsc:connection wsdlLocation="http://localhost:8177/products/schema.wsdl" service="SchemaPortService" port="SchemaPortSoap11" address="http://localhost:8177/products" >
+			<wsc:web-service-security mustUnderstand="false" actor="http://schemas.xmlsoap.org/soap/actor/next" />
+		</wsc:connection>
+	</wsc:config>
+	<flow name="getProduct" doc:id="9c91f0ce-7799-47b8-86ce-d30a069cf8da" >
+		<http:listener doc:name="Listener" doc:id="4a26c0a4-efcb-43a1-9a8c-33a524b7d7df" config-ref="HTTP_Listener_config" path="/catalog/products/{id}" allowedMethods="GET">
+			<http:response >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Access-Control-Allow-Origin" : "*",
+	"Access-Control-Allow-Methods" : "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers" : "*"
+}]]]></http:headers>
+			</http:response>
+			<http:error-response statusCode='#[read(error.exception.cause.detail, "application/xml").detail.code]' >
+				<http:body ><![CDATA[#[payload]]]></http:body>
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Access-Control-Allow-Origin" : "*",
+	"Access-Control-Allow-Methods" : "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers" : "*"
+}]]]></http:headers>
+			</http:error-response>
+		</http:listener>
+		<ee:transform doc:name="Transform Message" doc:id="59624fc0-7c52-4142-bbfd-03ec675941b8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output text/xml skipNullOn="everywhere"
+ns gs http://org/korolev/dens/productservice/jaxb
+---
+{
+	gs#getProductByIdRequest:
+	{
+		gs#id: attributes.uriParams.id
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<wsc:consume doc:name="Consume" doc:id="6238884f-a6bc-450d-bfa9-072334fb35ca" config-ref="Web_Service_Consumer_Config" operation="getProductById"/>
+		<ee:transform doc:name="Transform Message" doc:id="3900578b-7098-4205-a302-2ca482d28417" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.getProductByIdResponse.product]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="f886a972-2034-4ca4-863f-d04ca065d42e" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="c1c63a88-e0bb-4502-a96f-31eca10e5075" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var c = read(error.exception.cause.detail, "application/xml").detail.code
+---
+{
+	"code": c,
+	"message": error.description
+}
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="getProducts" doc:id="59ddc350-feb4-483a-bb9f-909614b3977c" >
+		<http:listener doc:name="Listener" doc:id="abd901b2-e039-4515-ab61-74de112f57d5" config-ref="HTTP_Listener_config" path="/catalog/products" allowedMethods="GET">
+			<http:response >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Access-Control-Allow-Origin" : "*",
+	"Access-Control-Allow-Methods" : "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers" : "*"
+}]]]></http:headers>
+			</http:response>
+			<http:error-response statusCode='#[read(error.exception.cause.detail, "application/xml").detail.code]'>
+				<http:body ><![CDATA[#[payload]]]></http:body>
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Access-Control-Allow-Origin" : "*",
+	"Access-Control-Allow-Methods" : "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers" : "*"
+}]]]></http:headers>
+			</http:error-response>
+		</http:listener>
+		<ee:transform doc:name="Transform Message" doc:id="2acc59e1-af12-4a14-9a0f-cb55f33eddfb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output text/xml skipNullOn="everywhere"
+ns gs http://org/korolev/dens/productservice/jaxb
+---
+{
+	gs#getProductsRequest:
+	{
+		gs#id: attributes.queryParams.id,
+		gs#name: attributes.queryParams.name,
+		gs#creationDate: attributes.queryParams.creationDate,
+		gs#price: attributes.queryParams.price,
+		gs#partNumber: attributes.queryParams.partNumber,
+		gs#manufactureCost: attributes.queryParams.manufactureCost,
+		gs#unitOfMeasure: attributes.queryParams.unitOfMeasure,
+		gs#sort: attributes.queryParams.sort,
+		gs#page: attributes.queryParams.page,
+		gs#size: attributes.queryParams.size
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="7d0093ee-f521-4f1a-bdc5-e723ac7407be" message="#[payload]"/>
+		<wsc:consume doc:name="Consume" doc:id="de5f91b2-630c-40ac-aee4-6732e21eb130" config-ref="Web_Service_Consumer_Config" operation="getProducts"/>
+		<logger level="INFO" doc:name="Logger" doc:id="171d1f8a-191b-46d9-bc60-380cb6fcd129" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="c5d7c0fe-24d7-4ca7-a545-e470af5474be" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0output application/json---payload.body.getProductsResponse.*productsGetResponse map (item, index) -> item]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="04408cf2-9b2e-4853-a6fd-90dd1164841d" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="e9c97e89-0424-4a87-a3f1-743aa736cf94" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var c = read(error.exception.cause.detail, "application/xml").detail.code
+---
+{
+	"code": c,
+	"message": error.description
+}
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="addProduct" doc:id="dc20d60d-2639-415e-85df-fbc82ed90fbc" >
+		<http:listener doc:name="Listener" doc:id="04165325-3ece-4e5c-85c1-c074d212c53e" config-ref="HTTP_Listener_config" path="/catalog/products" allowedMethods="POST">
+			<http:response >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Access-Control-Allow-Origin" : "*",
+	"Access-Control-Allow-Methods" : "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers" : "*"
+}]]]></http:headers>
+			</http:response>
+			<http:error-response statusCode='#[read(error.exception.cause.detail, "application/xml").detail.code]'>
+				<http:body ><![CDATA[#[payload]]]></http:body>
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Access-Control-Allow-Origin" : "*",
+	"Access-Control-Allow-Methods" : "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers" : "*"
+}]]]></http:headers>
+			</http:error-response>
+		</http:listener>
+		<ee:transform doc:name="Transform Message" doc:id="123cd355-039a-4f97-9693-143a543f41b5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output text/xml skipNullOn="everywhere"
+ns gs http://org/korolev/dens/productservice/jaxb
+---
+{
+	gs#addProductRequest:
+	{
+		gs#name: payload.name,
+		gs#coordinates: {
+			gs#x: payload.coordinates.x,
+			gs#y: payload.coordinates.y
+		},
+		gs#price: payload.price,
+		gs#partNumber: payload.partNumber,
+		gs#manufactureCost: payload.manufactureCost,
+		gs#unitOfMeasure: payload.unitOfMeasure,
+		gs#owner: {
+			gs#name: payload.owner.name,
+			gs#birthday: payload.owner.birthday,
+			gs#height: payload.owner.height,
+			gs#passportID: payload.owner.passportID,
+			gs#location: {
+				gs#x: payload.owner.location.x,
+				gs#y: payload.owner.location.y,
+				gs#name: payload.owner.location.name,
+			}
+		}
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<wsc:consume doc:name="Consume" doc:id="396d28ca-772d-4c2e-8dd6-3a5c91aac243" config-ref="Web_Service_Consumer_Config" operation="addProduct"/>
+		<ee:transform doc:name="Transform Message" doc:id="9ee59f3c-fb36-4d49-87ef-162b97c29cc4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.addProductResponse.product]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="5cc9cc60-7c25-48f0-8e5e-0b80fd8e9543" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="981e01c4-9c2d-4614-83f5-aa9243b6afc9" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var c = read(error.exception.cause.detail, "application/xml").detail.code
+---
+{
+	"code": c,
+	"message": error.description
+}
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="updateProduct" doc:id="7706ae47-4bfe-412b-8d8a-9a2f137291a0" >
+		<http:listener doc:name="Listener" doc:id="f576d3fb-96ac-453e-9b78-e83c717b169b" config-ref="HTTP_Listener_config" path="/catalog/products/{id}" allowedMethods="PUT">
+			<http:response >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Access-Control-Allow-Origin" : "*",
+	"Access-Control-Allow-Methods" : "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers" : "*"
+}]]]></http:headers>
+			</http:response>
+			<http:error-response statusCode='#[read(error.exception.cause.detail, "application/xml").detail.code]'>
+				<http:body ><![CDATA[#[payload]]]></http:body>
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Access-Control-Allow-Origin" : "*",
+	"Access-Control-Allow-Methods" : "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers" : "*"
+}]]]></http:headers>
+			</http:error-response>
+		</http:listener>
+		<ee:transform doc:name="Transform Message" doc:id="9be4a3ab-1aab-4b02-bdf9-e328734c8122" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output text/xml skipNullOn="everywhere"
+ns gs http://org/korolev/dens/productservice/jaxb
+---
+{
+	gs#updateProductRequest:
+	{
+		gs#id: attributes.uriParams.id,
+		gs#name: payload.name,
+		gs#coordinates: {
+			gs#x: payload.coordinates.x,
+			gs#y: payload.coordinates.y
+		},
+		gs#price: payload.price,
+		gs#partNumber: payload.partNumber,
+		gs#manufactureCost: payload.manufactureCost,
+		gs#unitOfMeasure: payload.unitOfMeasure,
+		gs#owner: {
+			gs#name: payload.owner.name,
+			gs#birthday: payload.owner.birthday,
+			gs#height: payload.owner.height,
+			gs#passportID: payload.owner.passportID,
+			gs#location: {
+				gs#x: payload.owner.location.x,
+				gs#y: payload.owner.location.y,
+				gs#name: payload.owner.location.name,
+			}
+		}
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<wsc:consume doc:name="Consume" doc:id="a3791af5-8dcf-46e2-8ddf-7bdecb5dee82" config-ref="Web_Service_Consumer_Config" operation="updateProduct"/>
+		<ee:transform doc:name="Transform Message" doc:id="2af3bb69-7fa7-471e-9956-d5c743670848" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.updateProductResponse.product]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="7fbe5c16-e58e-459f-9509-b8e04e16a272" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="8339be1c-76ec-4734-92a4-e67874a47d15" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var c = read(error.exception.cause.detail, "application/xml").detail.code
+---
+{
+	"code": c,
+	"message": error.description
+}
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="deleteProduct" doc:id="573967cc-a651-47d7-8318-9943afd1d5fc" >
+		<http:listener doc:name="Listener" doc:id="4f4bc8fb-b771-4e34-a81a-dd8d7323d256" config-ref="HTTP_Listener_config" path="/catalog/products/{id}" allowedMethods="DELETE">
+			<http:response >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Access-Control-Allow-Origin" : "*",
+	"Access-Control-Allow-Methods" : "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers" : "*"
+}]]]></http:headers>
+			</http:response>
+			<http:error-response statusCode='#[read(error.exception.cause.detail, "application/xml").detail.code]'>
+				<http:body ><![CDATA[#[payload]]]></http:body>
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Access-Control-Allow-Origin" : "*",
+	"Access-Control-Allow-Methods" : "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers" : "*"
+}]]]></http:headers>
+			</http:error-response>
+		</http:listener>
+		<ee:transform doc:name="Transform Message" doc:id="e6681ba1-0d12-4b20-b7dd-ad9a6138297d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output text/xml skipNullOn="everywhere"
+ns gs http://org/korolev/dens/productservice/jaxb
+---
+{
+	gs#deleteProductByIdRequest:
+	{
+		gs#id: attributes.uriParams.id
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<wsc:consume operation="deleteProductById" doc:name="Consume" doc:id="e636036c-a872-4ab7-ae81-cb2e08072911" config-ref="Web_Service_Consumer_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="f292c0f3-2500-4854-bfd4-044c1b7c1c22" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var m = payload.body.deleteProductByIdResponse
+---
+{
+	"code": m.code,
+	"message": m.message	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="c7af4227-81a3-4e10-ad1c-ef2b9587bdfe" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="2e3254fc-3821-4c87-ae23-2a7bd8dcc6c1" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var c = read(error.exception.cause.detail, "application/xml").detail.code
+---
+{
+	"code": c,
+	"message": error.description
+}
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="countByOwner" doc:id="b2daa74f-9a21-49e9-91c1-94a2040fa464" >
+		<http:listener doc:name="Listener" doc:id="7cc28f8f-428e-44c0-8ab3-1ca185e7f52c" config-ref="HTTP_Listener_config" path="/catalog/products/owner/{passportID}/count" allowedMethods="GET">
+			<http:response >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Access-Control-Allow-Origin" : "*",
+	"Access-Control-Allow-Methods" : "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers" : "*"
+}]]]></http:headers>
+			</http:response>
+			<http:error-response statusCode='#[read(error.exception.cause.detail, "application/xml").detail.code]'>
+				<http:body ><![CDATA[#[payload]]]></http:body>
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Access-Control-Allow-Origin" : "*",
+	"Access-Control-Allow-Methods" : "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers" : "*"
+}]]]></http:headers>
+			</http:error-response>
+		</http:listener>
+		<ee:transform doc:name="Transform Message" doc:id="3c88ca19-d6fa-4037-85e3-b2682d23860f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output text/xml skipNullOn="everywhere"
+ns gs http://org/korolev/dens/productservice/jaxb
+---
+{
+	gs#countByOwnerRequest:
+	{
+		gs#passportID: attributes.uriParams.passportID
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<wsc:consume operation="countByOwner" doc:name="Consume" doc:id="0b5071f2-cebf-453f-8e5e-f72310d031c5" config-ref="Web_Service_Consumer_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="2efa89d1-592a-4382-8b71-2559b113ce3f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.countByOwnerResponse.count]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="c25ae420-85e8-41b5-9ab6-1cb16691a0a5" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="80c48a38-cb9e-4d34-94e3-204eb15b1971" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var c = read(error.exception.cause.detail, "application/xml").detail.code
+---
+{
+	"code": c,
+	"message": error.description
+}
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="counByGreaterUnitOfMeasure" doc:id="b9abc2c3-dd82-4b11-ae95-cf33b99e8342" >
+		<http:listener doc:name="Listener" doc:id="094e95c1-5b18-41d3-b43e-dea50697623e" config-ref="HTTP_Listener_config" path="/catalog/products/unitOfMeasure/{unit}/count" allowedMethods="GET">
+			<http:response >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Access-Control-Allow-Origin" : "*",
+	"Access-Control-Allow-Methods" : "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers" : "*"
+}]]]></http:headers>
+			</http:response>
+			<http:error-response statusCode='#[read(error.exception.cause.detail, "application/xml").detail.code]'>
+				<http:body ><![CDATA[#[payload]]]></http:body>
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Access-Control-Allow-Origin" : "*",
+	"Access-Control-Allow-Methods" : "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers" : "*"
+}]]]></http:headers>
+			</http:error-response>
+		</http:listener>
+		<ee:transform doc:name="Transform Message" doc:id="9cda1c04-69fd-4aa0-83f3-1c9c47640366" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output text/xml skipNullOn="everywhere"
+ns gs http://org/korolev/dens/productservice/jaxb
+---
+{
+	gs#countByGreaterUnitOfMeasureRequest:
+	{
+		gs#unit: attributes.uriParams.unit
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<wsc:consume operation="countByGreaterUnitOfMeasure" doc:name="Consume" doc:id="b1fde63a-9817-4c23-a011-43b7bc627fec" config-ref="Web_Service_Consumer_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="5b0f3e2d-678d-4fe7-9872-4d17b9e7f2a4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.countByGreaterUnitOfMeasureResponse.count]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="bcc35043-86f2-4364-b8ef-21ced3c73afb" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="59cfe321-585c-4de6-9ae8-3e9beea02528" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var c = read(error.exception.cause.detail, "application/xml").detail.code
+---
+{
+	"code": c,
+	"message": error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="getAllByPartnumberSubstrig" doc:id="450dfbb5-ccbe-4935-9e2e-9ef7f734d7de" >
+		<http:listener doc:name="Listener" doc:id="358d3339-16c8-4a44-8146-d127dffcb9b2" config-ref="HTTP_Listener_config" path="/catalog/products/partNumber/search" allowedMethods="GET">
+			<http:response >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Access-Control-Allow-Origin" : "*",
+	"Access-Control-Allow-Methods" : "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers" : "*"
+}]]]></http:headers>
+			</http:response>
+			<http:error-response statusCode='#[read(error.exception.cause.detail, "application/xml").detail.code]'>
+				<http:body ><![CDATA[#[payload]]]></http:body>
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Access-Control-Allow-Origin" : "*",
+	"Access-Control-Allow-Methods" : "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers" : "*"
+}]]]></http:headers>
+			</http:error-response>
+		</http:listener>
+		<ee:transform doc:name="Transform Message" doc:id="06af653f-c929-4ca5-aee7-64f485a6b23f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output text/xml skipNullOn="everywhere"
+ns gs http://org/korolev/dens/productservice/jaxb
+---
+{
+	gs#getByPartNumberSubstringRequest:
+	{
+		gs#substring: attributes.queryParams.substring
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<wsc:consume operation="getByPartNumberSubstring" doc:name="Consume" doc:id="1da17a07-842e-4605-98d6-f487576758bc" config-ref="Web_Service_Consumer_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="418dd57f-0da6-4fa4-bf56-791269caf23e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.getByPartNumberSubstringResponse.*productsGetResponse map (item, index) -> item
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="07358ad6-f186-4503-ad74-b0e8e99079cf" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="c26c0f53-6362-46e6-a285-035fcd80cf21" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var c = read(error.exception.cause.detail, "application/xml").detail.code
+---
+{
+	"code": c,
+	"message": error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
