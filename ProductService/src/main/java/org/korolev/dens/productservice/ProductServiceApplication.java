@@ -16,7 +16,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class ProductServiceApplication {
 
     public static void main(String[] args) {
-        System.setProperty("jsse.enableSNIExtension", "false");
+        //System.setProperty("jsse.enableSNIExtension", "false");
         SpringApplication.run(ProductServiceApplication.class, args);
     }
 
@@ -31,23 +31,23 @@ public class ProductServiceApplication {
         };
     }
 
-    @Bean
-    JettyServerCustomizer disableSniHostCheck() {
-        return (server) -> {
-            for (Connector connector : server.getConnectors()) {
-                if (connector instanceof ServerConnector serverConnector) {
-                    HttpConnectionFactory connectionFactory = serverConnector
-                            .getConnectionFactory(HttpConnectionFactory.class);
-                    if (connectionFactory != null) {
-                        SecureRequestCustomizer secureRequestCustomizer = connectionFactory.getHttpConfiguration()
-                                .getCustomizer(SecureRequestCustomizer.class);
-                        if (secureRequestCustomizer != null) {
-                            secureRequestCustomizer.setSniHostCheck(false);
-                        }
-                    }
-                }
-            }
-        };
-    }
+//    @Bean
+//    JettyServerCustomizer disableSniHostCheck() {
+//        return (server) -> {
+//            for (Connector connector : server.getConnectors()) {
+//                if (connector instanceof ServerConnector serverConnector) {
+//                    HttpConnectionFactory connectionFactory = serverConnector
+//                            .getConnectionFactory(HttpConnectionFactory.class);
+//                    if (connectionFactory != null) {
+//                        SecureRequestCustomizer secureRequestCustomizer = connectionFactory.getHttpConfiguration()
+//                                .getCustomizer(SecureRequestCustomizer.class);
+//                        if (secureRequestCustomizer != null) {
+//                            secureRequestCustomizer.setSniHostCheck(false);
+//                        }
+//                    }
+//                }
+//            }
+//        };
+//    }
 
 }

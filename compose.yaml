@@ -1,8 +1,4 @@
 services:
-  mule:
-    image: 'wslph/mule:3.9.0-ee'
-    ports:
-      - "8081:8081"
   jboss:
     image: 'quay.io/wildfly/wildfly:28.0.0.Final-jdk20'
     restart: always
@@ -10,6 +6,8 @@ services:
       - "9990:9990"
       - "8188:8080"
       - "8199:8443"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   postgres:
     image: 'postgres:latest'
     environment:
