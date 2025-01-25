@@ -1,9 +1,16 @@
 package ru.soa.ejb.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.soa.ejb.services.CreationDateDeserializer;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -20,10 +27,14 @@ public class Product implements Serializable {
     private String name;
 
     private Coordinates coordinates;
+
+    @JsonProperty("creationDate")
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonSerialize(using = LocalDateSerializer.class)
+    @JsonDeserialize(using = CreationDateDeserializer.class)
     private LocalDate creationDate;
 
     private Double price;
-
 
     private String partNumber;
 

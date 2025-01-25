@@ -43,6 +43,7 @@ public RequestMessage askToDecreaseAllByPercent(Double percent) throws ProductSe
     List<Product> allProducts = objectMapper.readValue(json, new TypeReference<>() {});
 
     List<Product> decreasedProducts = allProducts.stream().filter(p -> p.getName() != null)
+            .filter(p -> p.getPrice() != null)
             .peek(p -> p.setPrice(p.getPrice() * ((100 - percent) / 100)))
             .toList();
 

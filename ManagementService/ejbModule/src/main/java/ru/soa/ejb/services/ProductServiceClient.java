@@ -16,7 +16,7 @@ public class ProductServiceClient {
 
     public ProductServiceClient() {
         this.client = ClientBuilder.newClient();
-        this.baseUrl = "https://products:8177/products";
+        this.baseUrl = "http://host.docker.internal:8144/catalog/products";
     }
 
     public Response getData(String apiUrl) throws ProductServiceException {

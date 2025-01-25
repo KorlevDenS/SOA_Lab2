@@ -9,9 +9,9 @@ public enum UnitOfMeasure {
     MILLILITERS,
     GRAMS;
 
-        @JsonValue
-    public String toLowerCase() {
-        return name().toLowerCase().replace("_", " ");
+    @JsonValue
+    public String toUpperCase() {
+        return name().toUpperCase().replace("_", " ");
     }
 
     @JsonCreator
